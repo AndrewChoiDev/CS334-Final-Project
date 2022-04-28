@@ -1,0 +1,96 @@
+    public static float EdgeTriangleIntersect(Triangle tri, Vector3 edgeA, Vector3 edgeB) {
+        var planeNorm = tri.norm();
+        var planePos = tri.v1;
+        var planeD = -Vector3.Dot(planeNorm, planePos);
+        var t = -(Vector3.Dot(planeNorm, edgeA) + planeD) / (Vector3.Dot(planeNorm, edgeB - edgeA));
+        if (t < 0.0f || t > 1.00001f) {
+            return -1f;;
+        }
+        var planeIntersect = edgeA + t * (edgeB - edgeA);
+
+        var medS1 = (tri.v1 + tri.v2) * 0.5f;
+        var medS2 = (tri.v2 + tri.v3) * 0.5f;
+        var medS3 = (tri.v3 + tri.v1) * 0.5f;
+        var triEps = 0.000001f;
+        var dirS1 = (tri.v3 - medS1).normalized;
+        var dirS2 = (tri.v1 - medS2).normalized;
+        var dirS3 = (tri.v2 - medS3).normalized;
+        var widerTri = new Triangle(){v1=tri.v1 + dirS2 * triEps, v2=tri.v2+dirS3*triEps, v3=tri.v3+dirS2*triEps};
+
+        if (pointInTriangleInf(widerTri, planeIntersect)) {
+            return (planeIntersect - edgeB).magnitude;
+        }
+        return -1f;
+    }
+
+
+    /*
+        public float isPointInMesh(Vector3 point) {
+            // EdgeTriangleIntersect()
+            var triangleList = makeTriangleList();
+            int interCount = 0;
+            var minDist = -1.0f;
+            foreach (var thisTri in triangleList)
+            {
+                var distToPoint = EdgeTriangleIntersect(thisTri, this.consBounds.max, point);
+                var epsilon = 0.0001f;
+                if (minDist == -1.0f) {
+                    minDist = distToPoint;
+                }
+                if (minDist > distToPoint && distToPoint != -1.0f) {
+                    minDist = distToPoint;
+                }
+                if (distToPoint > epsilon) {
+                    interCount += 1;
+                }
+                else if (distToPoint > -epsilon) {
+                    // odd count
+                    return 0.0f;
+                }
+            }
+
+            if (interCount % 2 == 0) {
+                return -1.0f;
+            } else {
+                Debug.Log(interCount);
+                Debug.DrawRay(point, Vector3.one * -0.1f, Color.magenta);
+                Debug.DrawRay(point, this.consBounds.max - point, Color.blue);
+                return 1.0f;
+            }
+        }
+
+        public bool isTriInMesh(Triangle otherTri) {
+            if (otherTri.valid1 || false) {
+                Debug.DrawRay(otherTri.v1, Vector3.one * 0.1f, Color.green);
+            }
+            if (otherTri.valid2 || false) {
+                Debug.DrawRay(otherTri.v2, Vector3.one * 0.1f, Color.green);
+            }
+            if (otherTri.valid3 || false) {
+                Debug.DrawRay(otherTri.v3, Vector3.one * 0.1f, Color.green);
+            }
+            var v1Test = isPointInMesh(otherTri.v1);
+            var v2Test = isPointInMesh(otherTri.v2);
+            var v3Test = isPointInMesh(otherTri.v3);
+            if (otherTri.valid1 && v1Test == 1.0f) {
+                return true;
+            }
+            if (otherTri.valid1 && v1Test == -1.0f) {
+                return false;
+            }
+            if (otherTri.valid2 && v2Test == 1.0f) {
+                return true;
+            }
+            if (otherTri.valid2 && v2Test == -1.0f) {
+                return false;
+            }
+            if (otherTri.valid3 && v3Test == 1.0f) {
+                return true;
+            }
+            if (otherTri.valid3 && v3Test == -1.0f) {
+                return false;
+            }
+
+            return true;
+        }
+        */
