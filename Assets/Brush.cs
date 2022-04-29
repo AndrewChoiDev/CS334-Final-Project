@@ -5,24 +5,12 @@
     
     public class Brush {
         public List<Vector3> vertices;
-        public Bounds consBounds;
         public TriBVH triBVH;
         public void CreateTriBVH() {
             Profiler.BeginSample("Create BVH");
-            // this.triBVH = TriBVH.constructBVH(this.makeTriangleList());
             this.triBVH = new TriBVH(this.makeTriangleList());
             Profiler.EndSample();
         }
-        /*
-        public BSPSys triBSP;
-        public void CreateBSP() {
-            this.triBSP = new BSPSys(new Triangle(){v1=vertices[0], v2=vertices[1], v3=vertices[2]});
-
-            for (int i = 3; i < this.vertices.Count; i += 3) {
-                this.triBSP.AddTriangle(new Triangle(){v1=vertices[i+0], v2=vertices[i+1], v3=vertices[i+2]});
-            }
-        }
-        */
 
         public void SetVerticesFromTris(List<Triangle> tris) {
             vertices = new List<Vector3>();
@@ -47,25 +35,6 @@
                 }
             }
             return intersects;
-            /*
-            for (int i = 0; i < vertices.Count; i += 3)
-            {
-                var thisTri = new Triangle(){v1=vertices[i+0], v2=vertices[i+1], v3=vertices[i+2]};
-
-                var consTest = otherTri.getConsBounds().Intersects(thisTri.getConsBounds());
-                if (consTest == false) {
-                    continue;
-                }
-                
-                var result = MyMath.TriangleIntersectionTest(otherTri, thisTri);
-
-                if (result) {
-                    intersects.Add(thisTri);
-                }
-            }
-
-            return intersects;
-            */
         }
 
         public List<Triangle> makeTriangleList() {
@@ -80,6 +49,9 @@
 
         public (List<Triangle>, List<Triangle>) SplitMesh(List<Triangle> baseTris) {
             Profiler.BeginSample("SplitMesh");
+
+            // partitions mesh into intersected triangles and non intersected ones
+            // stores triangles that have intersected the intersected triangle as well
             var validTriangles = new List<Triangle>();
             var intersectedTriangles = new List<Triangle>();
             var intersectedTrianglesIntersects = new List<List<Triangle>>();
@@ -93,6 +65,8 @@
                     validTriangles.Add(baseTris[i]);
                 }
             }
+
+            // determines whether the non-intersected triangles are inside the mesh or not
             var insideTriangles = new List<Triangle>();
             var outsideTriangles = new List<Triangle>();
 
@@ -109,6 +83,7 @@
             }
             Profiler.EndSample();
 
+            // split the intersected triangles until they no longer intersect a triangle
             var splitTriangles = new List<Triangle>();
             for (int i = 0; i < intersectedTriangles.Count; i++)
             {
@@ -116,6 +91,7 @@
                 splitTriangles = splitTriangles.Concat(resultTris).ToList();
             }
 
+            // determines whether the intersected triangles are inside the mesh or not
             Profiler.BeginSample("Split Triangles In Mesh Test");
             foreach (var tri in splitTriangles)
             {

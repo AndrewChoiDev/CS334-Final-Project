@@ -23,6 +23,7 @@ public class TriBVH {
         return new Bounds(boundsCenter, boundsSize);
     }
 
+    // use insertion sort for low triangle counts
     public static void InsertionSort(List<Triangle> tris, int longestAxis) {
         var count = tris.Count;
         for (int i = 1; i < count; i++) {
@@ -54,6 +55,12 @@ public class TriBVH {
         Profiler.EndSample();
 
         if (inTris.Count > 1) {
+            // sort triangles' centroids along the longest axis of the current AABB
+            // triangles before the median are assigned to one TriBVH
+            // triangles at the median and after are assigned to other TriBVH
+            // calculate maximum and minimums of the new TriBVH AABBs
+
+            // determine longest axis
             var boundsSize = consBounds.size;
             var longestAxis = 0;
             if (boundsSize.y >= boundsSize.x && boundsSize.y >= boundsSize.z) {
@@ -61,6 +68,8 @@ public class TriBVH {
             } else if (boundsSize.z >= boundsSize.x && boundsSize.z >= boundsSize.y) {
                 longestAxis = 2;
             }
+
+            // sort triangles along longest axis
             Profiler.BeginSample("BVH Sort");
             if (inTris.Count < 15) {
                 InsertionSort(inTris, longestAxis);
@@ -70,11 +79,11 @@ public class TriBVH {
             Profiler.EndSample();
             var iMiddle = inTris.Count / 2;
 
-
+            // calculate new tribvh aabbs
             var aSplitAxisMax = inTris[0].v1[longestAxis];
             var bSplitAxisMin = inTris[iMiddle].v1[longestAxis];
-            var aSplitTris = new List<Triangle>();
-            var bSplitTris = new List<Triangle>();
+            var aSplitTris = new List<Triangle>(iMiddle + 1);
+            var bSplitTris = new List<Triangle>(iMiddle + 1);
             for (int i = 0; i < iMiddle; i++)
             {
                 aSplitAxisMax = Mathf.Max(aSplitAxisMax, inTris[i].v1[longestAxis]);
@@ -103,9 +112,11 @@ public class TriBVH {
             var bSplitSizes = (this.consBounds.max - bSplitBoundsMin);
             var bSplitBounds = new Bounds(bSplitCenter, bSplitSizes);
 
-            this.splitA = new TriBVH(inTris.GetRange(0, iMiddle), aSplitBounds);
-            this.splitB = new TriBVH(inTris.GetRange(iMiddle, inTris.Count - iMiddle), bSplitBounds);
+            // create new triBVHs
+            this.splitA = new TriBVH(aSplitTris, aSplitBounds);
+            this.splitB = new TriBVH(bSplitTris, bSplitBounds);
         } else {
+            // leaf node case
             this.tri = inTris[0];
         }
     }

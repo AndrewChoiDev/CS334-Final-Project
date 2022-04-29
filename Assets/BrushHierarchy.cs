@@ -6,31 +6,27 @@ public class BrushHierarchy {
     public Transform top;
     public List<BrushHierarchy> nodeChildren;
     public Brush brush;
-    // public List<Brush> brushChildren;
-    // public List<string> operation;
 
 
     public static List<Triangle> intersection(Brush a, Brush b) {
 
         var (bInsideA, bOutsideA) = a.SplitMesh(b.makeTriangleList());
         var (aInsideB, aOutsideB) = b.SplitMesh(a.makeTriangleList());
-        // model = insideModel;
         return bInsideA.Concat(aInsideB).ToList();
-        // model = insideModel.Concat(outsideModel).ToList();
     }
     public static List<Triangle> union(Brush a, Brush b) {
 
         var (bInsideA, bOutsideA) = a.SplitMesh(b.makeTriangleList());
         var (aInsideB, aOutsideB) = b.SplitMesh(a.makeTriangleList());
-        // model = insideModel;
         return bOutsideA.Concat(aOutsideB).ToList();
-        // model = insideModel.Concat(outsideModel).ToList();
     }    
     public static List<Triangle> difference(Brush a, Brush b) {
 
         var (bInsideA, bOutsideA) = a.SplitMesh(b.makeTriangleList());
         var (aInsideB, aOutsideB) = b.SplitMesh(a.makeTriangleList());
-        // model = insideModel;
+
+        // reverse order of vertices in each triangle
+        // this filps the normals
         for (int i = 0; i < bInsideA.Count; i += 1) {
             var triCopy = bInsideA[i];
             var temp = triCopy.v1;
@@ -38,6 +34,7 @@ public class BrushHierarchy {
             triCopy.v3 = temp;
             bInsideA[i] = triCopy;
         }
+
         return aOutsideB.Concat(bInsideA).ToList();
     }
 
@@ -51,13 +48,7 @@ public class BrushHierarchy {
             {
                 nodeChildren.Add(new BrushHierarchy(this.top.GetChild(i)));
             }
-            // foreach (Transform child in top)
-            // {
-                // Debug.Log(child.name);
-                // nodeChildren.Add(new BrushHierarchy(top));
-            // }
         }
-
     }
 
     public void ConstructBrush() {

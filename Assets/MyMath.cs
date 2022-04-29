@@ -113,6 +113,8 @@ public static int Pow(this int bas, int exp)
           .Repeat(bas, exp)
           .Aggregate(1, (a, b) => a * b);
 }
+
+// use this to cut triangles by other triangles in the csg algorithm
     public static List<Triangle> DivideTrianglesByOtherTris(Triangle inTri, List<Triangle> cutTris) {
 
         Profiler.BeginSample("Divide Triangles");
@@ -200,40 +202,38 @@ public static int Pow(this int bas, int exp)
 
 
     }
-    // public static float isPointInMeshBVH(Vector3 point, TriBVH bvh) {
-        // bvh.GetPotentialTriRayIntersects(new Ray())
-    // }
 
-        public static float isPointInMesh(Vector3 point, Brush brush) {
-            Profiler.BeginSample("isPointInMesh");
-            int interCount = 0;
+    // use even/odd ray intersection test to see if point is inside mesh
+    public static float isPointInMesh(Vector3 point, Brush brush) {
+        Profiler.BeginSample("isPointInMesh");
+        int interCount = 0;
 
-            var arbitrDir = new Vector3(30.5f, 42.0f, 64.0f).normalized;
-            var triangleList = new List<Triangle>();
-            brush.triBVH.GetPotentialTriRayIntersects(new Ray(point, arbitrDir), triangleList);
+        var arbitrDir = new Vector3(30.5f, 42.0f, 64.0f).normalized;
+        var triangleList = new List<Triangle>();
+        brush.triBVH.GetPotentialTriRayIntersects(new Ray(point, arbitrDir), triangleList);
 
 
-            foreach (var thisTri in triangleList)
-            {
-                var arbitrPoint = point + arbitrDir;
-                var distToPoint = RayTriangleIntersect(thisTri, point, arbitrPoint);
-                var epsilon = 0.0001f;
-                if (distToPoint > epsilon) {
-                    interCount += 1;
-                } else {
-                    if (distToPoint > -epsilon && distToPoint <= epsilon) {
-                        Profiler.EndSample();
-                        return 0.0f;
-                    }
+        foreach (var thisTri in triangleList)
+        {
+            var arbitrPoint = point + arbitrDir;
+            var distToPoint = RayTriangleIntersect(thisTri, point, arbitrPoint);
+            var epsilon = 0.0001f;
+            if (distToPoint > epsilon) {
+                interCount += 1;
+            } else {
+                if (distToPoint > -epsilon && distToPoint <= epsilon) {
+                    Profiler.EndSample();
+                    return 0.0f;
                 }
             }
-
-            if (interCount % 2 == 0) {
-                Profiler.EndSample();
-                return -1.0f;
-            } else {
-                Profiler.EndSample();
-                return 1.0f;
-            }
         }
+
+        if (interCount % 2 == 0) {
+            Profiler.EndSample();
+            return -1.0f;
+        } else {
+            Profiler.EndSample();
+            return 1.0f;
+        }
+    }
 }
