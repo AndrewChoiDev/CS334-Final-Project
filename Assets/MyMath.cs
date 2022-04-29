@@ -3,6 +3,13 @@ using System.Collections.Generic;
 using UnityEngine.Profiling;
 using System.Linq;
 public static class MyMath {
+
+    public static Vector3 EdgePlaneIntersect(Vector3 edgeA, Vector3 edgeB, Vector3 planeNorm, Vector3 planePos) {
+        var planeD = -Vector3.Dot(planeNorm, planePos);
+        var t = -(Vector3.Dot(planeNorm, edgeA) + planeD) / (Vector3.Dot(planeNorm, edgeB - edgeA));
+        return edgeA + t * (edgeB - edgeA);
+    }
+
     public static (Triangle, Triangle, Triangle, float) CutTriangle(Triangle tri, Vector3 planePos, Vector3 planeNormal, float[] testArray) {
         var cPos = tri.v1;
         var aPos = tri.v2;
@@ -23,8 +30,8 @@ public static class MyMath {
             cTest = testArray[1];
         }
 
-        var aCap = BSPCSGSystem.EdgePlaneIntersect(aPos, cPos, planeNormal, planePos);
-        var bCap = BSPCSGSystem.EdgePlaneIntersect(bPos, cPos, planeNormal, planePos);
+        var aCap = EdgePlaneIntersect(aPos, cPos, planeNormal, planePos);
+        var bCap = EdgePlaneIntersect(bPos, cPos, planeNormal, planePos);
 
         return (
         new Triangle(){v1=aCap, v2=aPos, v3=bPos},
@@ -133,7 +140,7 @@ public static int Pow(this int bas, int exp)
                 if (!trianglesIntersectAtEdge
                     && MyMath.TriangleIntersectionTest(testTri, cutTri)) {
 
-                    var (t1, t2, t3, cTest) = BSPCSGSystem.TriBSP.CutTriangle(testTri, planePos, planeNorm, testArray);
+                    var (t1, t2, t3, cTest) = CutTriangle(testTri, planePos, planeNorm, testArray);
 
                     if (cTest >= 0) {
                         triOutput.Add(t1);
